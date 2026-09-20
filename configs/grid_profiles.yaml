@@ -1,0 +1,18 @@
+profiles:
+  dense_service:
+    grid_cell_km: 0.35
+    radius_meters: 500
+    zoom: 17
+    depth: 1
+
+  normal_city:
+    grid_cell_km: 0.5
+    radius_meters: 700
+    zoom: 16
+    depth: 1
+
+  suburban:
+    grid_cell_km: 1.0
+    radius_meters: 1200
+    zoom: 15
+    depth: 1

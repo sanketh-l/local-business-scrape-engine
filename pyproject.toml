@@ -1,0 +1,28 @@
+[project]
+name = "local-business-scrape-engine"
+version = "0.1.0"
+description = "Config-driven local business scraping pipeline MVP"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pandas>=2.2.0",
+  "openpyxl>=3.1.0",
+  "phonenumbers>=8.13.0",
+  "pydantic>=2.7.0",
+  "pyyaml>=6.0.0",
+  "rapidfuzz>=3.9.0",
+  "tldextract>=5.1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+
+[project.scripts]
+leadgen = "leadgen.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

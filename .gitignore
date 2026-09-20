@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+*.sqlite
+*.db
+data/raw/*
+data/exports/*
+!data/raw/.gitkeep
+!data/exports/.gitkeep
+.env

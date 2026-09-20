@@ -1,0 +1,58 @@
+categories:
+  - id: plumber
+    canonical_name: Plumber
+    tier: 1
+    enabled: true
+    variants:
+      - plumber
+      - plumbing service
+      - plumbing contractor
+      - emergency plumber
+    default_depth: 1
+    grid_profile: normal_city
+
+  - id: roofing_contractor
+    canonical_name: Roofing contractor
+    tier: 1
+    enabled: true
+    variants:
+      - roofing contractor
+      - roofer
+      - roof repair
+      - roofing company
+    default_depth: 1
+    grid_profile: normal_city
+
+  - id: hvac_contractor
+    canonical_name: HVAC contractor
+    tier: 1
+    enabled: true
+    variants:
+      - HVAC contractor
+      - air conditioning repair
+      - heating contractor
+      - furnace repair
+    default_depth: 1
+    grid_profile: normal_city
+
+  - id: electrician
+    canonical_name: Electrician
+    tier: 1
+    enabled: true
+    variants:
+      - electrician
+      - electrical contractor
+      - emergency electrician
+    default_depth: 1
+    grid_profile: normal_city
+
+  - id: house_cleaning
+    canonical_name: House cleaning service
+    tier: 1
+    enabled: true
+    variants:
+      - house cleaning service
+      - maid service
+      - home cleaning service
+    default_depth: 1
+    grid_profile: normal_city

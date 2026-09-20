@@ -1,0 +1,78 @@
+name: Scrape Request
+description: Browser form for planning a local-business scrape run
+title: "Scrape request: [city/category]"
+labels: ["scrape-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to plan a scrape request. To actually run it, go to Actions -> Manual Leadgen Pipeline and copy these values.
+
+        Legal note: Google Maps scraping/export may violate Google terms or privacy/marketing laws depending on use. Review compliance before running non-dry-run jobs.
+
+  - type: input
+    id: location
+    attributes:
+      label: Location ID
+      description: Must exist in configs/locations.yaml.
+      placeholder: austin_tx
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - plumber
+        - roofing_contractor
+        - hvac_contractor
+        - electrician
+        - house_cleaning
+    validations:
+      required: true
+
+  - type: dropdown
+    id: dry_run
+    attributes:
+      label: Dry run first?
+      description: Keep this as yes until you confirm the commands look right.
+      options:
+        - "yes"
+        - "no"
+    validations:
+      required: true
+
+  - type: input
+    id: limit
+    attributes:
+      label: Worker task limit
+      placeholder: "1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: variants
+    attributes:
+      label: Include keyword variants?
+      options:
+        - "no"
+        - "yes"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: export_format
+    attributes:
+      label: Export format
+      options:
+        - csv
+        - xlsx
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Add any city, category, proxy, or compliance notes.

@@ -1,0 +1,7 @@
+profiles:
+  local_safe:
+    concurrency: 2
+    depth: 1
+    fast_mode: true
+    email: false
+    exit_on_inactivity: 3m

@@ -1,0 +1,33 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -e .[dev]
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Validate MVP commands
+        run: |
+          leadgen init-db
+          leadgen load-config --categories configs/categories.yaml --locations configs/locations.yaml
+          leadgen generate-grid --location austin_tx
+          leadgen generate-tasks --location austin_tx --category plumber
+          leadgen coverage --location austin_tx --category plumber
+          leadgen worker --limit 1 --dry-run

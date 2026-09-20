@@ -1,0 +1,112 @@
+name: Manual Leadgen Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      location:
+        description: Location ID from configs/locations.yaml
+        required: true
+        default: austin_tx
+      category:
+        description: Category ID from configs/categories.yaml
+        required: true
+        default: plumber
+        type: choice
+        options:
+          - plumber
+          - roofing_contractor
+          - hvac_contractor
+          - electrician
+          - house_cleaning
+      include_variants:
+        description: Generate keyword variant tasks too
+        required: true
+        type: choice
+        default: "false"
+        options:
+          - "false"
+          - "true"
+      limit:
+        description: Number of worker tasks to run
+        required: true
+        default: "1"
+      export_format:
+        description: Export file format
+        required: true
+        type: choice
+        default: csv
+        options:
+          - csv
+          - xlsx
+      dry_run:
+        description: Print scraper commands only
+        required: true
+        type: choice
+        default: "true"
+        options:
+          - "true"
+          - "false"
+      compliance_ack:
+        description: Type I_ACCEPT_LEGAL_RISK to allow non-dry-run scraping
+        required: false
+        default: ""
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LEADGEN_REQUIRE_COMPLIANCE_ACK: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Block non-dry-run without acknowledgement
+        if: ${{ inputs.dry_run == 'false' && inputs.compliance_ack != 'I_ACCEPT_LEGAL_RISK' }}
+        run: |
+          echo "Non-dry-run scraping requires compliance_ack=I_ACCEPT_LEGAL_RISK"
+          exit 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pipeline
+        run: pip install -e .
+
+      - name: Initialize DB and tasks
+        run: |
+          leadgen init-db
+          leadgen load-config --categories configs/categories.yaml --locations configs/locations.yaml
+          leadgen generate-grid --location "${{ inputs.location }}"
+          if [ "${{ inputs.include_variants }}" = "true" ]; then
+            leadgen generate-tasks --location "${{ inputs.location }}" --category "${{ inputs.category }}" --variants
+          else
+            leadgen generate-tasks --location "${{ inputs.location }}" --category "${{ inputs.category }}"
+          fi
+
+      - name: Run worker dry-run
+        if: ${{ inputs.dry_run == 'true' }}
+        run: leadgen worker --limit "${{ inputs.limit }}" --dry-run
+
+      - name: Run worker real
+        if: ${{ inputs.dry_run == 'false' }}
+        run: leadgen worker --limit "${{ inputs.limit }}" --compliance-ack
+
+      - name: Normalize, dedupe, report, export
+        run: |
+          leadgen normalize
+          leadgen dedupe
+          leadgen coverage --location "${{ inputs.location }}" --category "${{ inputs.category }}"
+          leadgen export --location "${{ inputs.location }}" --category "${{ inputs.category }}" --format "${{ inputs.export_format }}" --out "data/exports/${{ inputs.location }}-${{ inputs.category }}.${{ inputs.export_format }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadgen-output-${{ inputs.location }}-${{ inputs.category }}
+          path: |
+            data/leadgen.sqlite
+            data/raw/**
+            data/exports/**
+          if-no-files-found: warn

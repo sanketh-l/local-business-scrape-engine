@@ -1,0 +1,11 @@
+locations:
+  - id: austin_tx
+    country: USA
+    region: TX
+    city: Austin
+    bbox:
+      min_lat: 30.0987
+      min_lng: -97.9384
+      max_lat: 30.5169
+      max_lng: -97.5615
+    grid_profile: normal_city

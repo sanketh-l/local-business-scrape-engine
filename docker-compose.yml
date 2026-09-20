@@ -1,0 +1,12 @@
+services:
+  leadgen:
+    build: .
+    environment:
+      LEADGEN_DB_PATH: /app/data/leadgen.sqlite
+      LEADGEN_RAW_DIR: /app/data/raw
+      LEADGEN_EXPORT_DIR: /app/data/exports
+      LEADGEN_REQUIRE_COMPLIANCE_ACK: "false"
+    volumes:
+      - ./data:/app/data
+      - ./configs:/app/configs:ro
+    command: ["coverage"]
