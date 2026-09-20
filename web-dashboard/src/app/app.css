@@ -29,4 +29,18 @@ input:focus, select:focus { outline: 3px solid #38bdf833; border-color: #38bdf8;
 .run p { margin: 7px 0 0; }
 .run-actions { display: flex; flex-wrap: wrap; align-content: center; justify-content: flex-end; gap: 8px; }
 .run a { color: #7dd3fc; text-decoration: none; font-weight: 800; }
+.jobs { display: grid; gap: 10px; margin: 14px 0; }
+.job { width: 100%; text-align: left; border: 1px solid #26364f; background: #07111f; color: #e5edf7; border-radius: 14px; padding: 12px; cursor: pointer; }
+.job.active { border-color: #38bdf8; box-shadow: 0 0 0 3px #38bdf826; }
+.job strong, .job span { display: block; }
+.job span { color: #94a3b8; margin-top: 4px; }
+.job-detail { margin-top: 16px; }
+.download { align-self: center; color: #06263a; background: #34d399; padding: 11px 13px; border-radius: 12px; text-decoration: none; font-weight: 900; }
+.area-list { display: grid; gap: 8px; margin-bottom: 18px; }
+.area-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; border: 1px solid #26364f; background: #07111f; border-radius: 12px; padding: 10px; }
+.table-wrap { max-height: 520px; overflow: auto; border: 1px solid #26364f; border-radius: 16px; }
+table { width: 100%; border-collapse: collapse; min-width: 980px; background: #07111f; }
+th, td { padding: 10px; border-bottom: 1px solid #26364f; text-align: left; vertical-align: top; }
+th { position: sticky; top: 0; background: #0f1b2d; z-index: 1; }
+td a { color: #7dd3fc; font-weight: 800; }
 @media (max-width: 900px) { .layout, .two, .metrics { grid-template-columns: 1fr; } .run { display: block; } .run-actions { justify-content: flex-start; margin-top: 12px; } }

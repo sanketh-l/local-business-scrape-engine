@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 import pandas as pd
+import requests
 
 from leadgen.city import (
     auto_grid_profile,
@@ -42,6 +43,21 @@ def parse_issue_form(body: str) -> dict[str, str]:
 
 def truthy(value: str | None) -> bool:
     return str(value or "").strip().lower() in {"yes", "true", "y", "1", "i_accept_legal_risk"}
+
+
+def post_dashboard(payload: dict) -> None:
+    callback_url = os.getenv("DASHBOARD_CALLBACK_URL")
+    secret = os.getenv("DASHBOARD_INGEST_SECRET")
+    job_id = os.getenv("DASHBOARD_JOB_ID")
+    if not callback_url or not secret or not job_id:
+        return
+    payload["job_id"] = job_id
+    requests.post(
+        f"{callback_url.rstrip('/')}/api/ingest",
+        json=payload,
+        headers={"Authorization": f"Bearer {secret}"},
+        timeout=60,
+    ).raise_for_status()
 
 
 def main() -> None:
@@ -88,6 +104,7 @@ def main() -> None:
     total_cells = 0
     total_tasks = 0
     queued_locations: list[str] = []
+    area_updates: list[dict] = []
     profile_name = f"auto_{intensity}"
 
     for row in area_rows[:max_areas]:
@@ -103,9 +120,23 @@ def main() -> None:
         location_id = slugify(location_label)
         profile = auto_grid_profile(bbox_area_km2(bounds.min_lat, bounds.min_lng, bounds.max_lat, bounds.max_lng), intensity)
         upsert_location(conn, location_id, bounds, profile_name)
-        total_cells += generate_grid_from_profile(conn, location_id, profile_name, profile)
-        total_tasks += generate_tasks(conn, location_id, category_id, variants=True)
+        cells = generate_grid_from_profile(conn, location_id, profile_name, profile)
+        tasks = generate_tasks(conn, location_id, category_id, variants=True)
+        total_cells += cells
+        total_tasks += tasks
         queued_locations.append(location_id)
+        area_updates.append({"name": row["name"], "status": "queued", "squares_total": cells, "squares_completed": 0, "position": len(area_updates)})
+
+    post_dashboard({
+        "job": {
+            "status": "queued",
+            "areas_total": len(area_updates),
+            "squares_total": total_cells,
+            "squares_completed": 0,
+            "message": "Areas discovered and grid squares queued",
+        },
+        "areas": area_updates,
+    })
 
     processed = run_worker(conn, worker_limit, dry_run=dry_run, compliance_ack=compliance_ack)
     normalized = normalize_all(conn) if not dry_run else 0
@@ -116,6 +147,31 @@ def main() -> None:
     if unique:
         export_path = export_businesses(conn, None, category_id, "csv", str(exports_dir / f"{slugify(city)}-{slugify(category)}.csv"))
         xlsx_path = export_businesses(conn, None, category_id, "xlsx", str(exports_dir / f"{slugify(city)}-{slugify(category)}.xlsx"))
+        leads = pd.read_csv(export_path).fillna("").to_dict(orient="records")
+    else:
+        leads = []
+
+    completed_squares = processed if not dry_run else 0
+    if area_updates:
+        area_updates[0]["status"] = "completed" if completed_squares else "queued"
+        area_updates[0]["squares_completed"] = min(completed_squares, area_updates[0]["squares_total"])
+        area_updates[0]["raw_rows"] = normalized
+        area_updates[0]["unique_businesses"] = unique
+
+    post_dashboard({
+        "job": {
+            "status": "completed" if dry_run else "completed",
+            "areas_total": len(area_updates),
+            "areas_completed": 1 if completed_squares else 0,
+            "squares_total": total_cells,
+            "squares_completed": completed_squares,
+            "raw_rows": normalized,
+            "unique_businesses": unique,
+            "message": "Dry-run completed; no leads were scraped" if dry_run else "Run completed and results synced",
+        },
+        "areas": area_updates,
+        "leads": leads,
+    })
 
     summary = [
         "## Scrape Request Status",

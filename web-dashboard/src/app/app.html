@@ -74,15 +74,81 @@
 
     <section class="card">
       <div class="split">
-        <h2>Recent Cloud Runs</h2>
-        <button class="ghost" type="button" (click)="refreshRuns()">Refresh</button>
+        <h2>Live Job Dashboard</h2>
+        <button class="ghost" type="button" (click)="refreshJobs()">Refresh</button>
       </div>
 
       <div class="metrics">
-        <div><strong>{{ area ? 'Area' : 'Full city' }}</strong><span>Scope</span></div>
-        <div><strong>{{ workerLimit }}</strong><span>Tasks this run</span></div>
-        <div><strong>{{ realScrape ? 'Real' : 'Dry' }}</strong><span>Mode</span></div>
+        <div><strong>{{ selectedJob()?.areas_total || 0 }}</strong><span>Areas queued</span></div>
+        <div><strong>{{ selectedJob()?.squares_total || 0 }}</strong><span>Squares queued</span></div>
+        <div><strong>{{ selectedJob()?.unique_businesses || 0 }}</strong><span>Unique leads</span></div>
       </div>
+
+      <div class="jobs">
+        @for (job of jobs(); track job.id) {
+          <button type="button" class="job" [class.active]="selectedJob()?.id === job.id" (click)="openJob(job.id)">
+            <strong>{{ job.city }} · {{ job.category }}</strong>
+            <span>{{ job.status }} · {{ job.created_at }}</span>
+          </button>
+        }
+      </div>
+
+      @if (selectedJob()) {
+        <div class="job-detail">
+          <div class="split">
+            <div>
+              <h3>{{ selectedJob()?.city }} {{ selectedJob()?.category }}</h3>
+              <p class="muted">{{ selectedJob()?.message }}</p>
+            </div>
+            <a class="download" [href]="exportUrl(selectedJob()!.id)" target="_blank" rel="noreferrer">Download live CSV</a>
+          </div>
+
+          <h3>Area Queue</h3>
+          <div class="area-list">
+            @for (item of areas(); track item.area_name) {
+              <div class="area-row">
+                <strong>{{ item.area_name }}</strong>
+                <span>{{ item.status }}</span>
+                <span>{{ item.squares_completed }}/{{ item.squares_total }} squares</span>
+                <span>{{ item.unique_businesses }} leads</span>
+              </div>
+            } @empty {
+              <p class="muted">Areas will appear after discovery starts.</p>
+            }
+          </div>
+
+          <h3>Live Excel View</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Business</th><th>Category</th><th>Phone</th><th>Website?</th><th>Website</th><th>Maps</th><th>Address</th><th>Rating</th><th>Reviews</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (lead of leads(); track lead['id']) {
+                  <tr>
+                    <td>{{ lead['business_name'] }}</td>
+                    <td>{{ lead['primary_category'] }}</td>
+                    <td>{{ lead['phone'] }}</td>
+                    <td>{{ lead['has_website'] }}</td>
+                    <td>@if (lead['website']) { <a [href]="$any(lead['website'])" target="_blank">open</a> }</td>
+                    <td>@if (lead['google_maps_link']) { <a [href]="$any(lead['google_maps_link'])" target="_blank">maps</a> }</td>
+                    <td>{{ lead['address'] }}</td>
+                    <td>{{ lead['rating'] }}</td>
+                    <td>{{ lead['review_count'] }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="9">No live leads yet. Dry-run mode will not create lead rows.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <h2>GitHub Runs</h2>
+      <button class="ghost" type="button" (click)="refreshRuns()">Refresh Runs</button>
 
       <div class="runs">
         @for (run of runs(); track run.id) {

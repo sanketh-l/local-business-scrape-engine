@@ -11,6 +11,25 @@ type RunStatus = {
   created_at: string;
 };
 
+type Job = {
+  id: string;
+  city: string;
+  country: string;
+  category: string;
+  status: string;
+  areas_total: number;
+  areas_completed: number;
+  squares_total: number;
+  squares_completed: number;
+  raw_rows: number;
+  unique_businesses: number;
+  message: string;
+  created_at: string;
+};
+
+type Area = { area_name: string; status: string; squares_total: number; squares_completed: number; raw_rows: number; unique_businesses: number };
+type Lead = Record<string, string | number | null>;
+
 @Component({
   imports: [FormsModule],
   selector: 'app-root',
@@ -56,9 +75,19 @@ export class App {
   readonly message = signal('');
   readonly error = signal('');
   readonly runs = signal<RunStatus[]>([]);
+  readonly jobs = signal<Job[]>([]);
+  readonly selectedJob = signal<Job | null>(null);
+  readonly areas = signal<Area[]>([]);
+  readonly leads = signal<Lead[]>([]);
 
   constructor() {
     this.refreshRuns();
+    this.refreshJobs();
+    setInterval(() => {
+      this.refreshJobs();
+      const job = this.selectedJob();
+      if (job) this.openJob(job.id);
+    }, 15000);
   }
 
   startJob(): void {
@@ -69,7 +98,7 @@ export class App {
       return;
     }
     this.busy.set(true);
-    this.http.post<{ message: string }>('/api/start', {
+    this.http.post<{ message: string; job_id: string }>('/api/start', {
       city: this.city,
       country: this.country,
       area: this.area,
@@ -83,7 +112,9 @@ export class App {
       next: (response) => {
         this.message.set(response.message || 'Job started. Refresh status in a few seconds.');
         this.busy.set(false);
+        if (response.job_id) this.openJob(response.job_id);
         setTimeout(() => this.refreshRuns(), 5000);
+        setTimeout(() => this.refreshJobs(), 5000);
       },
       error: (err) => {
         this.error.set(err?.error?.error || 'Could not start job. Check Cloudflare function secrets.');
@@ -99,7 +130,31 @@ export class App {
     });
   }
 
+  refreshJobs(): void {
+    this.http.get<{ jobs: Job[] }>('/api/jobs').subscribe({
+      next: (response) => {
+        this.jobs.set(response.jobs || []);
+        if (!this.selectedJob() && response.jobs?.length) this.openJob(response.jobs[0].id);
+      },
+      error: () => this.jobs.set([]),
+    });
+  }
+
+  openJob(jobId: string): void {
+    this.http.get<{ job: Job; areas: Area[]; leads: Lead[] }>(`/api/job?job_id=${encodeURIComponent(jobId)}`).subscribe({
+      next: (response) => {
+        this.selectedJob.set(response.job);
+        this.areas.set(response.areas || []);
+        this.leads.set(response.leads || []);
+      }
+    });
+  }
+
   artifactUrl(runId: number): string {
     return `/api/artifact?run_id=${runId}`;
+  }
+
+  exportUrl(jobId: string): string {
+    return `/api/export?job_id=${encodeURIComponent(jobId)}`;
   }
 }

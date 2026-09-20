@@ -5,3 +5,8 @@ pages_build_output_dir = "dist/web-dashboard/browser"
 [vars]
 GITHUB_OWNER = "sanketh-l"
 GITHUB_REPO = "local-business-scrape-engine"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "leadgen-dashboard-db"
+database_id = "9a5e49cf-af67-48d1-b61f-5f118789fc27"

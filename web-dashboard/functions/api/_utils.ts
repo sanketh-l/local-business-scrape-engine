@@ -1,7 +1,9 @@
 export type Env = {
   GITHUB_TOKEN: string;
+  INGEST_SECRET: string;
   GITHUB_OWNER?: string;
   GITHUB_REPO?: string;
+  DB: D1Database;
 };
 
 export function github(env: Env, path: string, init: RequestInit = {}) {
@@ -24,4 +26,8 @@ export function json(data: unknown, status = 200) {
     status,
     headers: { 'content-type': 'application/json; charset=utf-8' },
   });
+}
+
+export function makeId(prefix: string) {
+  return `${prefix}_${crypto.randomUUID().replaceAll('-', '').slice(0, 18)}`;
 }

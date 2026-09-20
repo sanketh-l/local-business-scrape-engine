@@ -30,6 +30,12 @@ on:
       compliance_ack:
         required: true
         default: "No"
+      job_id:
+        required: true
+        default: ""
+      callback_url:
+        required: true
+        default: ""
 
 jobs:
   run-dashboard-job:
@@ -47,6 +53,9 @@ jobs:
       DASHBOARD_WORKER_LIMIT: ${{ inputs.worker_limit }}
       DASHBOARD_REAL_SCRAPE: ${{ inputs.real_scrape }}
       DASHBOARD_COMPLIANCE_ACK: ${{ inputs.compliance_ack }}
+      DASHBOARD_JOB_ID: ${{ inputs.job_id }}
+      DASHBOARD_CALLBACK_URL: ${{ inputs.callback_url }}
+      DASHBOARD_INGEST_SECRET: ${{ secrets.DASHBOARD_INGEST_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
