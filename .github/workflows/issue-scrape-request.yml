@@ -2,7 +2,7 @@ name: Issue Scrape Request
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened]
 
 permissions:
   contents: read
@@ -28,10 +28,9 @@ jobs:
       - name: Install pipeline
         run: pip install -e .
 
-      - name: Prepare scraper container for real runs
+      - name: Prepare scraper container
         run: |
           chmod +x scripts/google-maps-scraper-docker.sh
-          docker pull gosom/google-maps-scraper
 
       - name: Run issue request
         run: python scripts/run_issue_request.py

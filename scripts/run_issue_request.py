@@ -68,7 +68,15 @@ def main() -> None:
     conn = connect()
 
     root_bounds = geocode_city(f"{area}, {city}" if area else city, country)
-    discovered_areas = [] if area else discover_city_areas(root_bounds, limit=max_areas)
+    discovery_error = None
+    if area:
+        discovered_areas = []
+    else:
+        try:
+            discovered_areas = discover_city_areas(root_bounds, limit=max_areas)
+        except Exception as exc:
+            discovery_error = str(exc)
+            discovered_areas = []
     area_rows = discovered_areas or [{"name": area or city, "lat": (root_bounds.min_lat + root_bounds.max_lat) / 2, "lng": (root_bounds.min_lng + root_bounds.max_lng) / 2, "place": "city"}]
 
     exports_dir = Path("data/exports")
@@ -127,6 +135,8 @@ def main() -> None:
         summary.append(f"Business export: `{export_path}`")
     else:
         summary.append("Business export: not created because there are no real scraped rows yet. Dry-run mode does not create leads.")
+    if discovery_error:
+        summary.append(f"Area discovery warning: `{discovery_error}`. Fell back to full-city grid.")
     summary.append("\nArtifacts are attached to this workflow run under `leadgen-issue-output`.")
     Path("data/summary.md").write_text("\n".join(summary), encoding="utf-8")
     print("\n".join(summary))
