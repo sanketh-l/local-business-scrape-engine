@@ -10,7 +10,9 @@ dependencies = [
   "phonenumbers>=8.13.0",
   "pydantic>=2.7.0",
   "pyyaml>=6.0.0",
+  "requests>=2.31.0",
   "rapidfuzz>=3.9.0",
+  "streamlit>=1.38.0",
   "tldextract>=5.1.0",
 ]
 
@@ -19,6 +21,7 @@ dev = ["pytest>=8.0.0"]
 
 [project.scripts]
 leadgen = "leadgen.cli:main"
+leadgen-dashboard = "leadgen.dashboard:main"
 
 [build-system]
 requires = ["setuptools>=68"]

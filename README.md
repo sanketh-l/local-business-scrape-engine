@@ -59,6 +59,58 @@ leadgen coverage --location austin_tx --category plumber
 leadgen export --location austin_tx --category plumber --format xlsx --out data/exports/austin-plumbers.xlsx
 ```
 
+## Dashboard
+
+The easiest way to use this is the dashboard.
+
+Run locally:
+
+```powershell
+cd C:\Users\sanke\OneDrive\Desktop\local-business-scrape-engine
+pip install -e .
+streamlit run src/leadgen/dashboard.py
+```
+
+Or run the included PowerShell launcher:
+
+```powershell
+cd C:\Users\sanke\OneDrive\Desktop\local-business-scrape-engine
+.\scripts\run_dashboard.ps1
+```
+
+Then open the browser URL Streamlit prints, usually:
+
+```text
+http://localhost:8501
+```
+
+Dashboard flow:
+
+1. Enter a city, for example `Bengaluru`.
+2. Enter a country, for example `India`.
+3. To target one area only, switch `Target scope` to `Specific area/neighborhood` and enter something like `Nandini Layout`.
+4. Enter a business keyword, for example `plumber` or `electrician`.
+5. Keep `Dry run only` enabled for the first run.
+6. Click `1. Find City Bounds`.
+7. Review estimated city/area size, grid squares, and task count.
+8. Click `2. Generate Squares And Queue`.
+9. Click `3. Run Worker Batch` with `Worker limit per run = 1` first.
+10. For real scraping, disable `Dry run only`, check the compliance box, and start with a small worker limit.
+11. After results exist, click `4. Normalize And Dedupe`.
+12. Click `5. Export File` and download CSV/XLSX.
+
+What it does automatically:
+
+- Geocodes the city to a bounding box.
+- Estimates the city size.
+- Chooses grid cell size based on coverage intensity.
+- Splits the city into overlapping micro-squares.
+- Generates one task for every keyword variant in every square.
+- Runs those tasks one batch at a time.
+- Stores raw data, dedupes results, and exports Excel-compatible files.
+
+Important: this is designed to approximate street-level coverage by searching many small coordinate cells. It can find far more listings than one broad city search, but no system can honestly guarantee that it will find every single business or every single street.
+
 ## Scaling Notes
 
 Start with one city and one category. Do not run every category/country at once. Increase throughput only after measuring failure rate, zero-result rate, duplicate rate, and unique businesses per second.
