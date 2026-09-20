@@ -140,5 +140,5 @@ Important limitations:
 
 - GitHub Actions is suitable for tests, dry runs, and very small manual jobs.
 - GitHub Actions is not the right place for sustained high-throughput scraping.
-- Real scraping in Actions requires the upstream scraper binary/container to be installed in the workflow first.
+- Real scraping in Actions uses the `gosom/google-maps-scraper` Docker image through `scripts/google-maps-scraper-docker.sh`.
 - For serious cloud execution, use a VPS/cloud VM or container service with PostgreSQL, Redis/Celery, long-running workers, proxy configuration, and monitoring.

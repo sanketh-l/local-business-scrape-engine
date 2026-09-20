@@ -57,6 +57,7 @@ jobs:
     timeout-minutes: 30
     env:
       LEADGEN_REQUIRE_COMPLIANCE_ACK: "true"
+      LEADGEN_SCRAPER_BIN: scripts/google-maps-scraper-docker.sh
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,6 +90,12 @@ jobs:
       - name: Run worker dry-run
         if: ${{ inputs.dry_run == 'true' }}
         run: leadgen worker --limit "${{ inputs.limit }}" --dry-run
+
+      - name: Prepare scraper container
+        if: ${{ inputs.dry_run == 'false' }}
+        run: |
+          chmod +x scripts/google-maps-scraper-docker.sh
+          docker pull gosom/google-maps-scraper
 
       - name: Run worker real
         if: ${{ inputs.dry_run == 'false' }}
