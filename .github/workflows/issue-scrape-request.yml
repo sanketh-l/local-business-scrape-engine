@@ -1,0 +1,64 @@
+name: Issue Scrape Request
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  run-request:
+    if: contains(github.event.issue.labels.*.name, 'scrape-request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      LEADGEN_REQUIRE_COMPLIANCE_ACK: "true"
+      LEADGEN_SCRAPER_BIN: scripts/google-maps-scraper-docker.sh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pipeline
+        run: pip install -e .
+
+      - name: Prepare scraper container for real runs
+        run: |
+          chmod +x scripts/google-maps-scraper-docker.sh
+          docker pull gosom/google-maps-scraper
+
+      - name: Run issue request
+        run: python scripts/run_issue_request.py
+
+      - name: Comment summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'data/summary.md';
+            const body = fs.existsSync(path) ? fs.readFileSync(path, 'utf8') : 'Workflow failed before summary was created. Check the Actions logs.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadgen-issue-output
+          path: |
+            data/summary.md
+            data/leadgen.sqlite
+            data/raw/**
+            data/exports/**
+          if-no-files-found: warn

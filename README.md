@@ -178,7 +178,19 @@ Run the form-like workflow from the browser:
 5. Fill in the fields like a form.
 6. Start with `dry_run=true` and `limit=1`.
 
-There is also an issue form at `Issues -> New issue -> Scrape Request`. Use that to collect/plan scrape requests before running them.
+There is also an issue form at `Issues -> New issue -> Scrape Request`. This is the easiest non-localhost dashboard: submit the form and GitHub Actions starts automatically.
+
+Issue form behavior:
+
+- Leave `Area/neighborhood optional` blank to run the full city.
+- The workflow discovers city areas/neighborhoods from OpenStreetMap/Overpass.
+- It saves an `areas-...csv` showing the discovered areas.
+- It generates grid-square scrape tasks for the discovered areas.
+- Dry-run mode creates the queue and prints commands but does not create leads.
+- Real scrape mode requires `I_ACCEPT_LEGAL_RISK`.
+- The workflow comments back on the issue with counts and artifact details.
+
+If the CSV is blank, it means no real scraped rows exist yet. Dry-run mode cannot produce business leads.
 
 The manual workflow inputs are:
 

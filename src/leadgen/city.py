@@ -47,6 +47,53 @@ def geocode_city(city: str, country: str) -> CityBounds:
     )
 
 
+def discover_city_areas(bounds: CityBounds, limit: int = 250) -> list[dict]:
+    query = f"""
+    [out:json][timeout:60];
+    (
+      node["place"~"suburb|neighbourhood|quarter|locality"]({bounds.min_lat},{bounds.min_lng},{bounds.max_lat},{bounds.max_lng});
+      way["place"~"suburb|neighbourhood|quarter|locality"]({bounds.min_lat},{bounds.min_lng},{bounds.max_lat},{bounds.max_lng});
+      relation["place"~"suburb|neighbourhood|quarter|locality"]({bounds.min_lat},{bounds.min_lng},{bounds.max_lat},{bounds.max_lng});
+    );
+    out center tags {limit};
+    """
+    response = requests.post(
+        "https://overpass-api.de/api/interpreter",
+        data={"data": query},
+        headers={"User-Agent": "local-business-scrape-engine/0.1"},
+        timeout=90,
+    )
+    response.raise_for_status()
+    seen = set()
+    areas: list[dict] = []
+    for element in response.json().get("elements", []):
+        tags = element.get("tags", {})
+        name = tags.get("name")
+        if not name or name.lower() in seen:
+            continue
+        lat = element.get("lat") or element.get("center", {}).get("lat")
+        lng = element.get("lon") or element.get("center", {}).get("lon")
+        if lat is None or lng is None:
+            continue
+        seen.add(name.lower())
+        areas.append({"name": name, "lat": float(lat), "lng": float(lng), "place": tags.get("place")})
+    return sorted(areas, key=lambda row: row["name"])
+
+
+def bounds_around_point(city: str, country: str, area_name: str, lat: float, lng: float, radius_km: float = 1.25) -> CityBounds:
+    lat_delta = radius_km / 111.32
+    lng_delta = radius_km / (111.32 * max(math.cos(math.radians(lat)), 0.01))
+    return CityBounds(
+        city=f"{area_name}, {city}",
+        country=country,
+        display_name=f"{area_name}, {city}, {country}",
+        min_lat=lat - lat_delta,
+        min_lng=lng - lng_delta,
+        max_lat=lat + lat_delta,
+        max_lng=lng + lng_delta,
+    )
+
+
 def bbox_area_km2(min_lat: float, min_lng: float, max_lat: float, max_lng: float) -> float:
     mid_lat = (min_lat + max_lat) / 2
     height = abs(max_lat - min_lat) * 111.32

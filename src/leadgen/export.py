@@ -64,6 +64,8 @@ def export_businesses(conn, location_id: str | None, category_id: str | None, fm
         params,
     ).fetchall()
     data = [dict(row) for row in rows]
+    if not data:
+        raise SystemExit("No deduped business rows to export yet. Run a real scrape first; dry-run mode only prints commands.")
     df = pd.DataFrame(data, columns=EXPORT_COLUMNS)
     EXPORT_DIR.mkdir(parents=True, exist_ok=True)
     path = Path(out) if out else EXPORT_DIR / f"businesses-{uuid.uuid4().hex[:8]}.{fmt}"

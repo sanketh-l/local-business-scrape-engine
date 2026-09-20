@@ -1,23 +1,39 @@
 name: Scrape Request
-description: Browser form for planning a local-business scrape run
-title: "Scrape request: [city/category]"
+description: Form-style dashboard. Submit this and GitHub Actions will start automatically.
+title: "Scrape request"
 labels: ["scrape-request"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this form to plan a scrape request. To actually run it, go to Actions -> Manual Leadgen Pipeline and copy these values.
+        Fill this like a Google Form. Leave area blank to scan the full city by discovered areas.
 
-        Legal note: Google Maps scraping/export may violate Google terms or privacy/marketing laws depending on use. Review compliance before running non-dry-run jobs.
+        Start with dry-run first. A dry-run creates the area list and queue but does not create business leads.
 
   - type: input
-    id: location
+    id: city
     attributes:
-      label: Location ID
-      description: Must exist in configs/locations.yaml.
-      placeholder: austin_tx
+      label: City
+      placeholder: Bengaluru
     validations:
       required: true
+
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      placeholder: India
+    validations:
+      required: true
+
+  - type: input
+    id: area
+    attributes:
+      label: Area/neighborhood optional
+      description: Leave blank for the full city. Example if needed: Nandini Layout.
+      placeholder: Leave blank for full city
+    validations:
+      required: false
 
   - type: dropdown
     id: category
@@ -25,54 +41,75 @@ body:
       label: Category
       options:
         - plumber
-        - roofing_contractor
-        - hvac_contractor
         - electrician
-        - house_cleaning
+        - roofing contractor
+        - HVAC contractor
+        - house cleaning service
+        - pest control service
+        - tree service
+        - landscaper
+        - painting contractor
+        - bathroom remodeler
+        - kitchen remodeler
+        - flooring contractor
+        - fence contractor
+        - deck builder
+        - concrete contractor
+        - garage door repair
+        - handyman
+        - commercial cleaning service
+        - auto repair shop
+        - dentist
     validations:
       required: true
 
   - type: dropdown
-    id: dry_run
+    id: coverage
     attributes:
-      label: Dry run first?
-      description: Keep this as yes until you confirm the commands look right.
+      label: Coverage intensity
       options:
-        - "yes"
-        - "no"
+        - Street-level, many small squares
+        - Balanced
+        - Fast preview
     validations:
       required: true
 
   - type: input
-    id: limit
+    id: max_areas
     attributes:
-      label: Worker task limit
+      label: Max areas to queue
+      description: For full-city runs. Start with 20-50. Increase after validation.
+      placeholder: "50"
+    validations:
+      required: true
+
+  - type: input
+    id: worker_limit
+    attributes:
+      label: Worker task limit this run
+      description: Number of grid-square tasks to execute in this Actions run. Start with 1.
       placeholder: "1"
     validations:
       required: true
 
   - type: dropdown
-    id: variants
+    id: real_scrape
     attributes:
-      label: Include keyword variants?
+      label: Run real scrape?
+      description: Choose No for dry-run. Dry-run does not create business leads.
       options:
-        - "no"
-        - "yes"
+        - "No, dry-run only"
+        - "Yes, run real scrape"
     validations:
       required: true
 
   - type: dropdown
-    id: export_format
+    id: compliance
     attributes:
-      label: Export format
+      label: Legal/compliance acknowledgement
+      description: Required for real scraping.
       options:
-        - csv
-        - xlsx
+        - "No"
+        - "I_ACCEPT_LEGAL_RISK"
     validations:
       required: true
-
-  - type: textarea
-    id: notes
-    attributes:
-      label: Notes
-      description: Add any city, category, proxy, or compliance notes.
