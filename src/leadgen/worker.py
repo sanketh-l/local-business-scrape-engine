@@ -72,7 +72,7 @@ def ingest_output(conn, task_id: str, output_file: Path) -> int:
 
 
 def run_worker(conn, limit: int, dry_run: bool = False, compliance_ack: bool = False) -> int:
-    if REQUIRE_COMPLIANCE_ACK and not compliance_ack:
+    if REQUIRE_COMPLIANCE_ACK and not dry_run and not compliance_ack:
         raise SystemExit("Compliance acknowledgement required. Re-run with --compliance-ack after legal review.")
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     tasks = conn.execute(
