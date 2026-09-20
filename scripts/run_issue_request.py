@@ -112,8 +112,10 @@ def main() -> None:
     linked = dedupe_all(conn) if not dry_run else 0
     unique = conn.execute("SELECT COUNT(*) count FROM business_identities").fetchone()["count"]
     export_path = None
+    xlsx_path = None
     if unique:
         export_path = export_businesses(conn, None, category_id, "csv", str(exports_dir / f"{slugify(city)}-{slugify(category)}.csv"))
+        xlsx_path = export_businesses(conn, None, category_id, "xlsx", str(exports_dir / f"{slugify(city)}-{slugify(category)}.xlsx"))
 
     summary = [
         "## Scrape Request Status",
@@ -133,6 +135,7 @@ def main() -> None:
     ]
     if export_path:
         summary.append(f"Business export: `{export_path}`")
+        summary.append(f"Excel export: `{xlsx_path}`")
     else:
         summary.append("Business export: not created because there are no real scraped rows yet. Dry-run mode does not create leads.")
     if discovery_error:

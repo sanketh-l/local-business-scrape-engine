@@ -1,0 +1,78 @@
+name: Dashboard Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      city:
+        required: true
+        default: Bengaluru
+      country:
+        required: true
+        default: India
+      area:
+        required: false
+        default: ""
+      category:
+        required: true
+        default: plumber
+      coverage:
+        required: true
+        default: Street-level, many small squares
+      max_areas:
+        required: true
+        default: "25"
+      worker_limit:
+        required: true
+        default: "1"
+      real_scrape:
+        required: true
+        default: "false"
+      compliance_ack:
+        required: true
+        default: "No"
+
+jobs:
+  run-dashboard-job:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      LEADGEN_REQUIRE_COMPLIANCE_ACK: "true"
+      LEADGEN_SCRAPER_BIN: scripts/google-maps-scraper-docker.sh
+      DASHBOARD_CITY: ${{ inputs.city }}
+      DASHBOARD_COUNTRY: ${{ inputs.country }}
+      DASHBOARD_AREA: ${{ inputs.area }}
+      DASHBOARD_CATEGORY: ${{ inputs.category }}
+      DASHBOARD_COVERAGE: ${{ inputs.coverage }}
+      DASHBOARD_MAX_AREAS: ${{ inputs.max_areas }}
+      DASHBOARD_WORKER_LIMIT: ${{ inputs.worker_limit }}
+      DASHBOARD_REAL_SCRAPE: ${{ inputs.real_scrape }}
+      DASHBOARD_COMPLIANCE_ACK: ${{ inputs.compliance_ack }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pipeline
+        run: pip install -e .
+
+      - name: Prepare scraper container
+        run: chmod +x scripts/google-maps-scraper-docker.sh
+
+      - name: Run dashboard request
+        run: python scripts/run_dashboard_request.py
+
+      - name: Upload output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadgen-dashboard-output
+          path: |
+            data/summary.md
+            data/leadgen.sqlite
+            data/raw/**
+            data/exports/**
+          if-no-files-found: warn

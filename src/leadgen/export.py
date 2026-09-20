@@ -15,6 +15,7 @@ EXPORT_COLUMNS = [
     "primary_category",
     "all_categories",
     "phone",
+    "has_website",
     "email_addresses",
     "website",
     "google_maps_link",
@@ -50,7 +51,8 @@ def export_businesses(conn, location_id: str | None, category_id: str | None, fm
     rows = conn.execute(
         f"""
         SELECT bi.id business_id, n.title business_name, n.category primary_category, bi.categories all_categories,
-               n.phone, n.emails email_addresses, n.website, n.google_maps_link, n.address, n.city, n.region, n.country,
+               n.phone, CASE WHEN n.website IS NOT NULL AND n.website != '' THEN 'yes' ELSE 'no' END has_website,
+               n.emails email_addresses, n.website, n.google_maps_link, n.address, n.city, n.region, n.country,
                n.postal_code, n.latitude, n.longitude, n.review_rating rating, n.review_count, n.status, n.place_id,
                n.cid, GROUP_CONCAT(DISTINCT n.source_keyword) source_keywords,
                COUNT(DISTINCT n.source_grid_cell_id) source_grid_cells_count, bi.first_seen_at, bi.last_seen_at

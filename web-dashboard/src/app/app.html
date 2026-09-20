@@ -1,0 +1,107 @@
+<main class="shell">
+  <section class="hero">
+    <p class="eyebrow">Cloud Lead Scraper</p>
+    <h1>City-wide micro-grid business scraping dashboard</h1>
+    <p class="subtext">Select a city and category. The cloud workflow discovers areas, splits them into small map squares, queues tasks, stores raw data, dedupes businesses, and exports output with Google Maps links and website yes/no.</p>
+  </section>
+
+  <section class="layout">
+    <form class="card controls" (ngSubmit)="startJob()">
+      <h2>Start A Job</h2>
+
+      <div class="two">
+        <label>Country
+          <input name="country" [(ngModel)]="country" required>
+        </label>
+        <label>City
+          <input name="city" [(ngModel)]="city" required>
+        </label>
+      </div>
+
+      <label>Area / neighborhood optional
+        <input name="area" [(ngModel)]="area" placeholder="Leave blank for full city">
+      </label>
+
+      <label>Category
+        <select name="category" [(ngModel)]="category">
+          @for (item of categories; track item) {
+            <option [value]="item">{{ item }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="two">
+        <label>Coverage
+          <select name="coverage" [(ngModel)]="coverage">
+            <option>Street-level, many small squares</option>
+            <option>Balanced</option>
+            <option>Fast preview</option>
+          </select>
+        </label>
+        <label>Mode
+          <select name="realScrape" [(ngModel)]="realScrape">
+            <option [ngValue]="false">Dry run first</option>
+            <option [ngValue]="true">Real scrape</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="two">
+        <label>Max areas to queue
+          <input name="maxAreas" type="number" min="1" max="500" [(ngModel)]="maxAreas">
+        </label>
+        <label>Worker tasks this run
+          <input name="workerLimit" type="number" min="1" max="1000" [(ngModel)]="workerLimit">
+        </label>
+      </div>
+
+      <label class="check">
+        <input name="complianceAck" type="checkbox" [(ngModel)]="complianceAck">
+        I accept legal/compliance risk for real scraping.
+      </label>
+
+      @if (error()) {
+        <div class="alert error">{{ error() }}</div>
+      }
+      @if (message()) {
+        <div class="alert ok">{{ message() }}</div>
+      }
+
+      <button class="primary" type="submit" [disabled]="busy()">
+        {{ busy() ? 'Starting...' : 'Start Cloud Job' }}
+      </button>
+    </form>
+
+    <section class="card">
+      <div class="split">
+        <h2>Recent Cloud Runs</h2>
+        <button class="ghost" type="button" (click)="refreshRuns()">Refresh</button>
+      </div>
+
+      <div class="metrics">
+        <div><strong>{{ area ? 'Area' : 'Full city' }}</strong><span>Scope</span></div>
+        <div><strong>{{ workerLimit }}</strong><span>Tasks this run</span></div>
+        <div><strong>{{ realScrape ? 'Real' : 'Dry' }}</strong><span>Mode</span></div>
+      </div>
+
+      <div class="runs">
+        @for (run of runs(); track run.id) {
+          <article class="run">
+            <div>
+              <strong>{{ run.name }}</strong>
+              <p>{{ run.status }} @if (run.conclusion) { / {{ run.conclusion }} } · {{ run.created_at }}</p>
+            </div>
+            <div class="run-actions">
+              <a [href]="run.html_url" target="_blank" rel="noreferrer">Open</a>
+              @if (run.status === 'completed') {
+                <a [href]="artifactUrl(run.id)" target="_blank" rel="noreferrer">Download output</a>
+              }
+            </div>
+          </article>
+        } @empty {
+          <p class="muted">No dashboard runs found yet.</p>
+        }
+      </div>
+    </section>
+  </section>
+</main>

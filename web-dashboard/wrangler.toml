@@ -1,0 +1,7 @@
+name = "leadgen-dashboard"
+compatibility_date = "2026-09-20"
+pages_build_output_dir = "dist/web-dashboard"
+
+[vars]
+GITHUB_OWNER = "sanketh-l"
+GITHUB_REPO = "local-business-scrape-engine"
