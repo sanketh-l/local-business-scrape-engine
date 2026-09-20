@@ -97,8 +97,10 @@
         </select>
 
         <div class="actions">
-          <button class="primary" id="start">Start Scrape Request</button>
-          <button class="secondary" id="copy">Copy Request</button>
+          <button class="primary" id="start">Open Ready Issue</button>
+          <button class="secondary" id="copyTitle">Copy Title</button>
+          <button class="secondary" id="copyBody">Copy Description</button>
+          <button class="secondary" id="copyAll">Copy Both</button>
           <a class="secondary" href="https://github.com/sanketh-l/local-business-scrape-engine/actions">View Runs</a>
           <a class="secondary" href="https://github.com/sanketh-l/local-business-scrape-engine/issues">View Requests</a>
         </div>
@@ -112,7 +114,9 @@
           <div class="metric"><strong id="limitMetric">1</strong><span>Tasks this run</span></div>
         </div>
         <div class="note">Dry-run builds areas, queue, and commands. It will not create business leads. Real scraping requires the legal acknowledgement.</div>
-        <p>Request body that will be sent to GitHub:</p>
+        <p>Issue title:</p>
+        <input id="issueTitle" readonly>
+        <p>Issue description. Copy-paste this into the GitHub issue if the Open Ready Issue button does not prefill it:</p>
         <textarea id="body" readonly></textarea>
         <div class="list">
           <div><strong>Full city:</strong> leave area blank. The workflow discovers areas/neighborhoods and creates grid tasks.</div>
@@ -141,11 +145,16 @@
         return `### City\n\n${el('city').value.trim()}\n\n### Country\n\n${el('country').value.trim()}\n\n### Area/neighborhood optional\n\n${area || '_No response_'}\n\n### Category\n\n${el('category').value}\n\n### Coverage intensity\n\n${el('coverage').value}\n\n### Max areas to queue\n\n${el('maxAreas').value}\n\n### Worker task limit this run\n\n${el('workerLimit').value}\n\n### Run real scrape?\n\n${el('mode').value}\n\n### Legal/compliance acknowledgement\n\n${el('legal').value}`;
       }
 
+      function issueTitle() {
+        return `Scrape request: ${el('city').value.trim()} ${el('category').value}`;
+      }
+
       function update() {
         const area = el('area').value.trim();
         el('areaMode').textContent = area ? 'One area' : 'Full city';
         el('safeMode').textContent = el('mode').value.startsWith('Yes') ? 'Real scrape' : 'Dry run';
         el('limitMetric').textContent = el('workerLimit').value || '1';
+        el('issueTitle').value = issueTitle();
         el('body').value = issueBody();
         localStorage.setItem('leadgen-dashboard', JSON.stringify({
           city: el('city').value, country: el('country').value, area: el('area').value, category: el('category').value,
@@ -166,13 +175,20 @@
           alert('Real scraping requires legal/compliance acknowledgement.');
           return;
         }
-        const title = `Scrape request: ${el('city').value.trim()} ${el('category').value}`;
-        const url = `https://github.com/sanketh-l/local-business-scrape-engine/issues/new?labels=scrape-request&title=${encodeURIComponent(title)}&body=${encodeURIComponent(issueBody())}`;
+        const url = `https://github.com/sanketh-l/local-business-scrape-engine/issues/new?labels=scrape-request&title=${encodeURIComponent(issueTitle())}&body=${encodeURIComponent(issueBody())}`;
         window.open(url, '_blank');
       });
-      el('copy').addEventListener('click', async () => {
+      el('copyTitle').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(issueTitle());
+        alert('Issue title copied.');
+      });
+      el('copyBody').addEventListener('click', async () => {
         await navigator.clipboard.writeText(issueBody());
-        alert('Request copied.');
+        alert('Issue description copied.');
+      });
+      el('copyAll').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(`TITLE:\n${issueTitle()}\n\nDESCRIPTION:\n${issueBody()}`);
+        alert('Title and description copied.');
       });
       restore();
       update();
